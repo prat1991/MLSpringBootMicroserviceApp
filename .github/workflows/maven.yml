@@ -1,13 +1,11 @@
 # Name of the workflow - This will be displayed in the GitHub Actions tab
 name: CICD Pipeline ML Springboot Microservice App
-
 # Define when this workflow will run
 on:
   push:
     branches: [ "master" ]  # Triggers when code is pushed to master branch
   pull_request:
     branches: [ "master" ]  # Triggers when a PR is created against master branch
-
 # Define the jobs that will run as part of this workflow
 jobs:
   # The build job handles both building and deploying the application
@@ -48,7 +46,9 @@ jobs:
     # Step 5: Build and push your Docker image
     - name: Build and push Docker image
       run: |
-        # Build the Docker image with a tag using the commit SHA for versioning
-        docker build -t prat1991/mlspringbootapp:${{ github.sha }} .
+        # List directory contents to debug
+        ls -la
+        # Build the Docker image with explicit Dockerfile path and correct repository name
+        docker build -t prat1991/mlspringbootapp:${{ github.sha }} -f ./Dockerfile .
         # Push the image to Docker Hub
         docker push prat1991/mlspringbootapp:${{ github.sha }}
