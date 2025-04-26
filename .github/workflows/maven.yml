@@ -43,12 +43,31 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     
-    # Step 5: Build and push your Docker image
+    # Step 5: Build and push Docker image
     - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/ml-springboot-app:latest
+    
+    # Step 6: Setup SSH for deployment to EC2
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        
+    # Step 7: Deploy Docker image to EC2
+    - name: Deploy Docker image to EC2
       run: |
-        # List directory contents to debug
-        ls -la
-        # Build the Docker image with explicit Dockerfile path and correct repository name
-        docker build -t prat1991/mlspringbootapp:${{ github.sha }} -f ./Dockerfile .
-        # Push the image to Docker Hub
-        docker push prat1991/mlspringbootapp:${{ github.sha }}
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+          # Stop existing container
+          docker stop spring-app || true
+          docker rm spring-app || true
+          
+          # Pull latest image
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ml-springboot-app:latest
+          
+          # Run container
+          docker run -d --name spring-app -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/ml-springboot-app:latest
+        EOF
