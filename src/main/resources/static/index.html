@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris Species Classifier</title>
+</head>
+<body>
+    <h1>Iris Species Classifier</h1>
+    
+    <div>
+        <h2>Enter Iris Features</h2>
+        <form id="irisForm">
+            <div>
+                <label for="sepalLength">Sepal Length (cm):</label>
+                <input type="number" id="sepalLength" name="sepalLength" step="0.1" value="5.1" required>
+            </div>
+            <div>
+                <label for="sepalWidth">Sepal Width (cm):</label>
+                <input type="number" id="sepalWidth" name="sepalWidth" step="0.1" value="3.5" required>
+            </div>
+            <div>
+                <label for="petalLength">Petal Length (cm):</label>
+                <input type="number" id="petalLength" name="petalLength" step="0.1" value="1.4" required>
+            </div>
+            <div>
+                <label for="petalWidth">Petal Width (cm):</label>
+                <input type="number" id="petalWidth" name="petalWidth" step="0.1" value="0.2" required>
+            </div>
+            <button type="submit" id="predictBtn">Predict Iris Species</button>
+        </form>
+        <div id="errorMsg" style="display: none;"></div>
+        <div id="loader" style="display: none;">Loading...</div>
+    </div>
+    
+    <div id="result" style="display: none;">
+        <h2>Prediction Result</h2>
+        <div>
+            <div id="species"></div>
+            <div id="confidence"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('irisForm');
+            const resultSection = document.getElementById('result');
+            const speciesElement = document.getElementById('species');
+            const confidenceElement = document.getElementById('confidence');
+            const errorMsg = document.getElementById('errorMsg');
+            const loader = document.getElementById('loader');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Hide any previous results or errors
+                resultSection.style.display = 'none';
+                errorMsg.style.display = 'none';
+                
+                // Show loader
+                loader.style.display = 'block';
+                
+                // Get form values
+                const sepalLength = document.getElementById('sepalLength').value;
+                const sepalWidth = document.getElementById('sepalWidth').value;
+                const petalLength = document.getElementById('petalLength').value;
+                const petalWidth = document.getElementById('petalWidth').value;
+                
+                // Create request payload
+                const data = {
+                    sepalLength: parseFloat(sepalLength),
+                    sepalWidth: parseFloat(sepalWidth),
+                    petalLength: parseFloat(petalLength),
+                    petalWidth: parseFloat(petalWidth)
+                };
+                
+                // Send API request
+                fetch('/api/classify/irisRequest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API request failed with status ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    // Hide loader
+                    loader.style.display = 'none';
+                    
+                    // Update result elements
+                    speciesElement.textContent = "Species: " + result.species;
+                    confidenceElement.textContent = "Confidence: " + result.confidence.toFixed(2) + "%";
+                    
+                    // Show result section
+                    resultSection.style.display = 'block';
+                })
+                .catch(error => {
+                    // Hide loader
+                    loader.style.display = 'none';
+                    
+                    // Show error message
+                    errorMsg.textContent = 'Error: ' + error.message;
+                    errorMsg.style.display = 'block';
+                    console.error('Error:', error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
