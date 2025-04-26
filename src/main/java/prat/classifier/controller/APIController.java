@@ -21,7 +21,7 @@ public class APIController {
     
     @GetMapping
     public String home() {
-        return "CICD Pipeline V5-ML Springboot Microservice";
+        return "CICD Pipeline V6-ML Springboot Microservice";
     }
     
     @PostMapping("/irisRequest")
